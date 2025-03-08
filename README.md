@@ -1,10 +1,8 @@
 # Инструкция по установке
 
-## Шаги установки
-
 1. Подключитесь к серверу по SSH
 
-2. Выполните команду:
+2. Выполните команду и следуйте инструкциям: 
    ```
    curl -O https://raw.githubusercontent.com/dusikasss/umdu_ssd_usb/main/install_to_usb.sh && chmod +x install_to_usb.sh && sudo ./install_to_usb.sh
    ```
