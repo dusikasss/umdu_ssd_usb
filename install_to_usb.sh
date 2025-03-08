@@ -14,13 +14,50 @@ echo "Шаг 1: Загрузка файлов с репозитория GitHub"
 TMP_DIR="/tmp/umdu_ssd_usb"
 mkdir -p "$TMP_DIR"
 
-# TODO: Актуализировать URL репозитория
-REPO_URL="https://github.com/example/repository.git"
+# Проверка наличия curl
+if ! command -v curl &> /dev/null; then
+  echo "Устанавливаем curl..."
+  apt-get update
+  apt-get install -y curl || {
+    echo "Ошибка: Не удалось установить curl"
+    exit 1
+  }
+fi
 
-git clone "$REPO_URL" "$TMP_DIR" || {
-  echo "Ошибка: Не удалось скачать данные с репозитория"
+# Загрузка архива с репозитория
+echo "Загрузка архива с репозитория..."
+REPO_URL="https://github.com/dusikasss/umdu_ssd_usb/archive/refs/heads/main.zip"
+ZIP_FILE="$TMP_DIR/repo.zip"
+
+curl -L "$REPO_URL" -o "$ZIP_FILE" || {
+  echo "Ошибка: Не удалось скачать архив с репозитория"
   exit 1
 }
+
+# Проверка наличия unzip
+if ! command -v unzip &> /dev/null; then
+  echo "Устанавливаем unzip..."
+  apt-get update
+  apt-get install -y unzip || {
+    echo "Ошибка: Не удалось установить unzip"
+    exit 1
+  }
+fi
+
+# Распаковка архива
+echo "Распаковка архива..."
+unzip -o "$ZIP_FILE" -d "$TMP_DIR" || {
+  echo "Ошибка: Не удалось распаковать архив"
+  exit 1
+}
+
+# Определяем имя распакованной директории
+EXTRACT_DIR=$(find "$TMP_DIR" -type d -name "umdu_ssd_usb-*" | head -n 1)
+
+if [ -z "$EXTRACT_DIR" ]; then
+  echo "Ошибка: Не удалось найти распакованную директорию"
+  exit 1
+fi
 
 # 2. Проверка подключенных дисков
 echo "Шаг 2: Проверка подключенных дисков"
@@ -66,7 +103,7 @@ mount "/dev/${USB_DISK}1" "$MOUNT_POINT" || {
 # 4. Копирование файлов DTB
 echo "Шаг 4: Копирование файлов DTB"
 DTB_TARGET_DIR="$MOUNT_POINT/boot/dtb"
-DTB_SOURCE_DIR="$TMP_DIR/allwinner"
+DTB_SOURCE_DIR="$EXTRACT_DIR/allwinner"
 
 # Создаем директорию, если она не существует
 mkdir -p "$DTB_TARGET_DIR"
@@ -106,7 +143,7 @@ fi
 
 # 5. Установка U-Boot
 echo "Шаг 5: Установка U-Boot"
-cd "$TMP_DIR/u-boot" || {
+cd "$EXTRACT_DIR/u-boot" || {
   echo "Ошибка: Директория с U-Boot не найдена"
   umount "$MOUNT_POINT" 2>/dev/null
   exit 1
