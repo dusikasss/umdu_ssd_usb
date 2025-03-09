@@ -124,18 +124,13 @@ if [ -f "$ARMBIAN_ENV_FILE" ]; then
   
   # Проверяем, есть ли строка с overlays
   if grep -q "^overlays=" "$ARMBIAN_ENV_FILE"; then
-    # Проверяем, нет ли уже usb0-host в списке overlays
-    if ! grep -q "^overlays=.*usb0-host" "$ARMBIAN_ENV_FILE"; then
-      # Добавляем usb0-host к существующим оверлеям
-      sed -i 's/^overlays=\(.*\)/overlays=\1 usb0-host/' "$ARMBIAN_ENV_FILE"
-      echo "Добавлено usb0-host к overlays в armbianEnv.txt"
-    else
-      echo "usb0-host уже присутствует в overlays"
-    fi
+    # Заменяем строку с overlays на новую с нужными значениями
+    sed -i 's/^overlays=.*/overlays=ph-uart2 ph-uart5 usb0-host/' "$ARMBIAN_ENV_FILE"
+    echo "Заменена строка overlays на 'overlays=ph-uart2 ph-uart5 usb0-host' в armbianEnv.txt"
   else
     # Если строки с overlays нет, добавляем ее
-    echo "overlays=uart2-ph uart5-ph usb0-host " >> "$ARMBIAN_ENV_FILE"
-    echo "Создана новая строка overlays с usb0-host в armbianEnv.txt"
+    echo "overlays=ph-uart2 ph-uart5 usb0-host" >> "$ARMBIAN_ENV_FILE"
+    echo "Создана новая строка overlays в armbianEnv.txt"
   fi
 else
   echo "Предупреждение: Файл armbianEnv.txt не найден"
